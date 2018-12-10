@@ -4,12 +4,9 @@
 #include <sys/wait.h>
 #include <errno.h>
 #include <time.h>
-#include <sys/times.h>
 
 long child_node(long sPoint, long ePoint);
-
 pid_t wpid;
-clock_t times(struct tms *buffer);
 
 int main(int argc, char *argv[])
 {
@@ -18,26 +15,13 @@ int main(int argc, char *argv[])
 		printf("\n Not accurate arguments passed!!! start value and end value needed \n");
 		return 0;
 	}
-
-	struct tms cpuTime;
-
 	long start = strtol(argv[1], NULL, 10);
 	long end = strtol(argv[2], NULL, 10);
 	long res;
 
 	res = child_node(start, end);
 	printf("\n*******the sum from %li to %li is %li ********  \n",start, end, res);
-	
-	if (times(&cpuTime) < 0)         /* Get process times.       */
-        perror("times error");
-	else {
-           printf("Parent process system time = %\n",
-                ((double) cpuTime.tms_stime));
-           printf("Child process user time = %f\n",
-                ((double) cpuTime.tms_cutime));
-           printf("Child process system time = %f\n",
-                ((double) cpuTime.tms_cstime));
-       }
+
 	return 0;	
 }
 
@@ -50,18 +34,14 @@ long child_node(long sPoint, long ePoint)
 
 	int fdLeft[2];
 	int fdRight[2];
-	if (pipe(fdLeft) == -1) 
+	while (pipe(fdLeft) == -1) 
 	{
-  		sleep(5);
 		fprintf(stderr, "pipe failed\n");
-		printf("Pipe failed: My parent is dealing %li -- %li\n",sPoint,ePoint);
 	}
 
-	if (pipe(fdRight) == -1) 
+	while (pipe(fdRight) == -1) 
 	{
-  		sleep(5);
 		fprintf(stderr, "pipe failed\n");
-		printf("Pipe failed: My parent is dealing %li -- %li\n",sPoint,ePoint);
 	}
 
 	if(num != 1)
@@ -72,9 +52,7 @@ long child_node(long sPoint, long ePoint)
 		left = fork();
 	  	while (left < 0) 
 	  	{
-	  		sleep(5);
 			fprintf(stderr, "fork failed\n");
-			printf("Left: My parent is dealing %li -- %li\n",sPoint,ePoint);
 			left = fork();
 		}
 
@@ -83,9 +61,7 @@ long child_node(long sPoint, long ePoint)
 			right = fork();
 			while (right<0)
 			{
-				sleep(5);
-				fprintf(stderr, "fork failed\n");
-				printf("Right: My parent is dealing %li -- %li\n",sPoint,ePoint);				
+				fprintf(stderr, "fork failed\n");				
 				right = fork();
 			}
 		}
