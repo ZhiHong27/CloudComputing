@@ -5,6 +5,11 @@
 #include <errno.h>
 #include <time.h>
 
+static double second(void)
+{
+    return ((double)((double)clock()/(double)CLOCKS_PER_SEC));
+}
+
 long child_node(long sPoint, long ePoint);
 pid_t wpid;
 
@@ -15,16 +20,18 @@ int main(int argc, char *argv[])
 		printf("\n Not accurate arguments passed!!! start value and end value needed \n");
 		return 0;
 	}
-	clock_t t0 = clock();
-	t0 = t0 / CLOCKS_PER_SEC;      /*    in seconds    */
+	double time;
+	time = second();
+
 	long start = strtol(argv[1], NULL, 10);
 	long end = strtol(argv[2], NULL, 10);
 	long res;
 
 	res = child_node(start, end);
 	printf("\n*******the sum from %li to %li is %li ********  \n",start, end, res);
-	clock_t t1 = clock();
-	printf("%Lf\n", (long double)(t1 - t0)/CLOCKS_PER_SEC);
+
+  	time = second() - time;
+  	printf("%.5f\n", time);
 
 	return 0;	
 }
@@ -40,14 +47,16 @@ long child_node(long sPoint, long ePoint)
 	int fdRight[2];
 	if (pipe(fdLeft) == -1) 
 	{
-	  perror("pipe");
-	  exit(1);
+  		sleep(5);
+		fprintf(stderr, "pipe failed\n");
+		printf("Pipe failed: My parent is dealing %li -- %li\n",sPoint,ePoint);
 	}
 
 	if (pipe(fdRight) == -1) 
 	{
-	  perror("pipe");
-	  exit(1);
+  		sleep(5);
+		fprintf(stderr, "pipe failed\n");
+		printf("Pipe failed: My parent is dealing %li -- %li\n",sPoint,ePoint);
 	}
 
 	if(num != 1)
@@ -66,7 +75,6 @@ long child_node(long sPoint, long ePoint)
 
 		if(left > 0)  /**in the parent process**/
 		{
-			while((wpid = wait(&status)) > 0) {}
 			right = fork();
 			while (right<0)
 			{
