@@ -4,14 +4,12 @@
 #include <sys/wait.h>
 #include <errno.h>
 #include <time.h>
-
-static double second(void)
-{
-    return ((double)((double)clock()/(double)CLOCKS_PER_SEC));
-}
+#include <sys/times.h>
 
 long child_node(long sPoint, long ePoint);
+
 pid_t wpid;
+clock_t times(struct tms *buffer);
 
 int main(int argc, char *argv[])
 {
@@ -20,8 +18,8 @@ int main(int argc, char *argv[])
 		printf("\n Not accurate arguments passed!!! start value and end value needed \n");
 		return 0;
 	}
-	double time;
-	time = second();
+
+	struct tms cpuTime;
 
 	long start = strtol(argv[1], NULL, 10);
 	long end = strtol(argv[2], NULL, 10);
@@ -29,10 +27,17 @@ int main(int argc, char *argv[])
 
 	res = child_node(start, end);
 	printf("\n*******the sum from %li to %li is %li ********  \n",start, end, res);
-
-  	time = second() - time;
-  	printf("%.5f\n", time);
-
+	
+	if (times(&cpuTime) < 0)         /* Get process times.       */
+        perror("times error");
+	else {
+           printf("Parent process system time = %\n",
+                ((double) cpuTime.tms_stime));
+           printf("Child process user time = %f\n",
+                ((double) cpuTime.tms_cutime));
+           printf("Child process system time = %f\n",
+                ((double) cpuTime.tms_cstime));
+       }
 	return 0;	
 }
 
