@@ -7,9 +7,12 @@ if [ ! -e $EXECUTABLE ] ; then
 	gcc -O -o forksum forksum.c -lm
 fi
 
+TIMEFORMAT='%3R'
+# do some stuff here
 
-MOREF=(time ./${EXECUTABLE} 1 10) |& awk '$1=="real"{print $2}'
+exec 3>&1 4>&2
+foo=$( { time ./${EXECUTABLE} 1 10000 1>&3 2>&4; } 2>&1 ) # change some_command
+exec 3>&- 4>&-
 
-echo $2
 #echo "The running time is $MOREF."
-#echo "`date +%s,` $result" >> /home/ccbenchmark/mem.csv
+echo "`date +%s,` $foo" >> forksum.csv
